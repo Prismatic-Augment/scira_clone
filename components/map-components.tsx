@@ -31,20 +31,12 @@ interface MapProps {
 }
 
 const MapComponent = ({ center, places = [], zoom = 14, onMarkerClick }: MapProps & { onMarkerClick?: (place: Place) => void }) => {
-  if (!isMapEnabled) {
-    return (
-      <div className="w-full h-[60vh] rounded-t-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-        <p className="text-neutral-500">Map functionality is disabled. Please configure map API keys to enable this feature.</p>
-      </div>
-    );
-  }
-
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
 
   useEffect(() => {
-    if (!mapRef.current || mapInstance.current) return;
+    if (!isMapEnabled || !mapRef.current || mapInstance.current) return;
     if (!mapboxgl.accessToken) {
       console.error('Mapbox access token is not set');
       return;
@@ -77,19 +69,18 @@ const MapComponent = ({ center, places = [], zoom = 14, onMarkerClick }: MapProp
   }, [center.lat, center.lng, zoom]);
 
   useEffect(() => {
-    if (mapInstance.current) {
-      mapInstance.current.flyTo({
-        center: [center.lng, center.lat],
-        zoom,
-        essential: true,
-        duration: 1000,
-        padding: { top: 50, bottom: 50, left: 50, right: 50 }
-      });
-    }
+    if (!isMapEnabled || !mapInstance.current) return;
+    mapInstance.current.flyTo({
+      center: [center.lng, center.lat],
+      zoom,
+      essential: true,
+      duration: 1000,
+      padding: { top: 50, bottom: 50, left: 50, right: 50 }
+    });
   }, [center, zoom]);
 
   useEffect(() => {
-    if (!mapInstance.current) return;
+    if (!isMapEnabled || !mapInstance.current) return;
 
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
@@ -128,6 +119,14 @@ const MapComponent = ({ center, places = [], zoom = 14, onMarkerClick }: MapProp
       markersRef.current.push(marker);
     });
   }, [places, onMarkerClick]);
+
+  if (!isMapEnabled) {
+    return (
+      <div className="w-full h-[60vh] rounded-t-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+        <p className="text-neutral-500">Map functionality is disabled. Please configure map API keys to enable this feature.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[60vh] rounded-t-xl overflow-hidden shadow-lg">

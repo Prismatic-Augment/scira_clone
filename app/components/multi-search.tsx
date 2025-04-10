@@ -1,6 +1,7 @@
 'use client';
 
 import { Badge } from "@/components/ui/badge";
+import Image from 'next/image';
 
 interface SearchImage {
     url: string;
@@ -90,10 +91,13 @@ export function MultiSearch({ result, annotations = [] }: MultiSearchProps) {
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
                     {allImages.map((image, index) => (
                         <div key={index} className="relative aspect-video">
-                            <img
+                            <Image
                                 src={image.url}
                                 alt={image.description || 'Search result image'}
-                                className="rounded-lg object-cover w-full h-full"
+                                className="rounded-lg object-cover"
+                                fill
+                                sizes="(max-width: 768px) 50vw, 33vw"
+                                priority={index < 6}
                             />
                             {image.description && (
                                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-xs rounded-b-lg">

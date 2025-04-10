@@ -12,6 +12,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from 
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { XLogo } from '@phosphor-icons/react';
+import Image from 'next/image';
 
 export interface StreamUpdate {
     id: string;
@@ -262,9 +263,11 @@ const ResearchStep = ({
                                                 className="flex items-start gap-2 p-2 rounded-lg bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                                             >
                                                 <div className="flex-shrink-0 mt-1">
-                                                    <img 
+                                                    <Image
                                                         src={`https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`}
                                                         alt=""
+                                                        width={16}
+                                                        height={16}
                                                         className="w-4 h-4"
                                                         onError={(e) => {
                                                             const target = e.target as HTMLImageElement;
@@ -436,9 +439,11 @@ const SourcesList = ({ sources, type }: { sources: StreamUpdate['results'], type
                 >
                     <div className="flex items-start gap-3">
                         <div className="flex-shrink-0 mt-1">
-                            <img 
+                            <Image
                                 src={`https://www.google.com/s2/favicons?domain=${new URL(source.url).hostname}&sz=128`}
                                 alt=""
+                                width={16}
+                                height={16}
                                 className="w-4 h-4"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
@@ -899,9 +904,11 @@ const ReasonSearch = ({ updates }: { updates: StreamUpdate[] }) => {
                                                 >
                                                     <div className="flex items-start gap-2">
                                                         <div className="flex-shrink-0 mt-0.5">
-                                                            <img 
+                                                            <Image
                                                                 src={`https://www.google.com/s2/favicons?domain=${new URL(source.url).hostname}&sz=128`}
                                                                 alt=""
+                                                                width={16}
+                                                                height={16}
                                                                 className="w-3.5 h-3.5"
                                                                 onError={(e) => {
                                                                     const target = e.target as HTMLImageElement;
@@ -960,9 +967,11 @@ const ReasonSearch = ({ updates }: { updates: StreamUpdate[] }) => {
                                                 >
                                                     <div className="flex items-start gap-2">
                                                         <div className="flex-shrink-0 mt-0.5">
-                                                            <img 
+                                                            <Image
                                                                 src={`https://www.google.com/s2/favicons?domain=${new URL(source.url).hostname}&sz=128`}
                                                                 alt=""
+                                                                width={16}
+                                                                height={16}
                                                                 className="w-3.5 h-3.5"
                                                                 onError={(e) => {
                                                                     const target = e.target as HTMLImageElement;
@@ -1039,7 +1048,18 @@ const ReasonSearch = ({ updates }: { updates: StreamUpdate[] }) => {
                                                             >
                                                                 <div className="flex items-start gap-2">
                                                                     <div className="flex-shrink-0 mt-0.5">
-                                                                        <XLogo className="h-3.5 w-3.5 text-neutral-500" />
+                                                                        <Image
+                                                                            src={`https://www.google.com/s2/favicons?domain=${new URL(source.url).hostname}&sz=128`}
+                                                                            alt=""
+                                                                            width={16}
+                                                                            height={16}
+                                                                            className="w-3.5 h-3.5 text-neutral-500"
+                                                                            onError={(e) => {
+                                                                                const target = e.target as HTMLImageElement;
+                                                                                target.style.display = 'none';
+                                                                                target.nextElementSibling?.classList.remove('hidden');
+                                                                            }}
+                                                                        />
                                                                     </div>
                                                                     <div className="min-w-0 flex-1">
                                                                         <h4 className="text-xs font-medium leading-snug truncate">

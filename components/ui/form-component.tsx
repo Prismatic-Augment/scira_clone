@@ -739,83 +739,43 @@ const FormComponent: React.FC<FormComponentProps> = ({
     const MIN_HEIGHT = 72;
     const MAX_HEIGHT = 400;
     
-    const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+    const [uploadQueue, setUploadQueue] = useState<string[]>([]);
     const isMounted = useRef(true);
     const isCompositionActive = useRef(false)
     const { width } = useWindowSize();
     const postSubmitFileInputRef = useRef<HTMLInputElement>(null);
-    const [isFocused, setIsFocused] = useState(true);
+    const [isFocused, setIsFocused] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isGroupSelectorExpanded, setIsGroupSelectorExpanded] = useState(false);
     const [isExceedingLimit, setIsExceedingLimit] = useState(false);
     const [switchNotification, setSwitchNotification] = useState<{
-        show: boolean;
-        icon: React.ReactNode;
         title: string;
         description: string;
-        notificationType?: 'model' | 'group';
-        visibilityTimeout?: NodeJS.Timeout;
-    }>({
-        show: false,
-        icon: null,
-        title: '',
-        description: '',
-        notificationType: 'model',
-        visibilityTimeout: undefined
-    });
+        icon?: React.ReactNode;
+        color?: string;
+        type?: 'model' | 'group';
+    } | null>(null);
 
-    const showSwitchNotification = (title: string, description: string, icon?: React.ReactNode, color?: string, type: 'model' | 'group' = 'model') => {
-        // Clear any existing timeout to prevent conflicts
-        if (switchNotification.visibilityTimeout) {
-            clearTimeout(switchNotification.visibilityTimeout);
-        }
+    const showSwitchNotification = useCallback((
+        title: string,
+        description: string,
+        icon?: React.ReactNode,
+        color?: string,
+        type: 'model' | 'group' = 'model'
+    ) => {
+        setSwitchNotification({ title, description, icon, color, type });
+        setTimeout(() => setSwitchNotification(null), 3000);
+    }, []);
 
-        setSwitchNotification({
-            show: true,
-            icon: icon || null,
-            title,
-            description,
-            notificationType: type,
-            visibilityTimeout: undefined
-        });
-
-        // Auto hide after 3 seconds
-        const timeout = setTimeout(() => {
-            setSwitchNotification(prev => ({ ...prev, show: false }));
-        }, 3000);
-
-        // Update the timeout reference
-        setSwitchNotification(prev => ({ ...prev, visibilityTimeout: timeout }));
-    };
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            if (switchNotification.visibilityTimeout) {
-                clearTimeout(switchNotification.visibilityTimeout);
-            }
-        };
-    }, [switchNotification.visibilityTimeout]);
-
-    const autoResizeInput = (target: HTMLTextAreaElement) => {
-        if (!target) return;
-        // Set height to min-height first to prevent jumping
+    const autoResizeInput = useCallback((target: HTMLTextAreaElement) => {
         target.style.height = `${MIN_HEIGHT}px`;
-        // Then calculate the actual height needed
         const scrollHeight = target.scrollHeight;
-        if (scrollHeight > MIN_HEIGHT) {
-            requestAnimationFrame(() => {
-                target.style.height = `${Math.min(scrollHeight, MAX_HEIGHT)}px`;
-            });
-        }
-    };
+        target.style.height = `${Math.min(scrollHeight, MAX_HEIGHT)}px`;
+    }, []);
 
-    // Auto-resize specifically on component mount (once)
+    // Auto-resize on mount
     useEffect(() => {
         if (inputRef.current) {
-            // Handle the initial height on mount
-            inputRef.current.style.height = `${MIN_HEIGHT}px`;
-            // Delay resize calculation slightly to ensure proper rendering
             const mountTimeout = setTimeout(() => {
                 if (inputRef.current) {
                     const scrollHeight = inputRef.current.scrollHeight;
@@ -826,18 +786,17 @@ const FormComponent: React.FC<FormComponentProps> = ({
             }, 50);
             return () => clearTimeout(mountTimeout);
         }
-    }, []);
+    }, [inputRef]);
 
     // Auto-resize on input changes
     useEffect(() => {
         if (inputRef.current) {
-            // Small delay to ensure the component is fully rendered
             const timeoutId = setTimeout(() => {
                 autoResizeInput(inputRef.current!);
             }, 10);
             return () => clearTimeout(timeoutId);
         }
-    }, [input]);
+    }, [input, inputRef, autoResizeInput]);
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         event.preventDefault();
@@ -874,12 +833,12 @@ const FormComponent: React.FC<FormComponentProps> = ({
             group.name,
             group.description,
             <group.icon className="size-4" />,
-            group.id, // Use the group ID directly as the color code
-            'group'   // Specify this is a group notification
+            group.id,
+            'group'
         );
-    }, [setSelectedGroup, inputRef]);
+    }, [setSelectedGroup, inputRef, showSwitchNotification]);
 
-    const uploadFile = async (file: File): Promise<Attachment> => {
+    const uploadFile = useCallback(async (file: File): Promise<Attachment> => {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -900,7 +859,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             toast.error("Failed to upload file, please try again!");
             throw error;
         }
-    };
+    }, []);
 
     const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(event.target.files || []);
@@ -927,7 +886,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             setUploadQueue([]);
             event.target.value = '';
         }
-    }, [attachments, setAttachments]);
+    }, [attachments, setAttachments, uploadFile]);
 
     const removeAttachment = (index: number) => {
         setAttachments(prev => prev.filter((_, i) => i !== index));
@@ -1081,46 +1040,23 @@ const FormComponent: React.FC<FormComponentProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
-    const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (status !== 'ready') {
-            toast.error("Please wait for the current response to complete!");
-            return;
-        }
-
-        // Check if input exceeds character limit
-        if (input.length > MAX_INPUT_CHARS) {
-            toast.error(`Your input exceeds the maximum of ${MAX_INPUT_CHARS} characters. Please shorten your message.`);
-            return;
-        }
-
-        if (input.trim() || attachments.length > 0) {
-            setHasSubmitted(true);
-            lastSubmittedQueryRef.current = input.trim();
-
-            handleSubmit(event, {
-                experimental_attachments: attachments,
-            });
-
-            setAttachments([]);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-        } else {
-            toast.error("Please enter a search query or attach an image.");
-        }
-    }, [input, attachments, handleSubmit, setAttachments, fileInputRef, lastSubmittedQueryRef, status]);
+    const handleSubmitCallback = useCallback((
+        event?: { preventDefault?: () => void },
+        chatRequestOptions?: ChatRequestOptions,
+    ) => {
+        if (event?.preventDefault) event.preventDefault();
+        handleSubmit(event, chatRequestOptions);
+        setHasSubmitted(true);
+    }, [handleSubmit, setHasSubmitted]);
 
     const submitForm = useCallback(() => {
-        onSubmit({ preventDefault: () => { }, stopPropagation: () => { } } as React.FormEvent<HTMLFormElement>);
+        handleSubmitCallback();
         resetSuggestedQuestions();
 
         if (width && width > 768) {
             inputRef.current?.focus();
         }
-    }, [onSubmit, resetSuggestedQuestions, width, inputRef]);
+    }, [handleSubmitCallback, resetSuggestedQuestions, width, inputRef]);
 
     const triggerFileInput = useCallback(() => {
         if (attachments.length >= MAX_IMAGES) {
@@ -1156,7 +1092,10 @@ const FormComponent: React.FC<FormComponentProps> = ({
     const isMobile = width ? width < 768 : false;
 
     return (
-        <div className="flex flex-col w-full">
+        <div className={cn(
+            "relative flex flex-col w-full max-w-4xl mx-auto",
+            isDragging && "after:absolute after:inset-0 after:z-50 after:border-2 after:border-dashed after:border-neutral-400 after:bg-neutral-400/10 after:rounded-xl"
+        )}>
             <div
                 className={cn(
                     "relative w-full flex flex-col gap-1 rounded-lg transition-all duration-300 !font-sans",
@@ -1226,16 +1165,16 @@ const FormComponent: React.FC<FormComponentProps> = ({
 
                 {/* Form container with switch notification */}
                 <div className="relative">
-                    <SwitchNotification
-                        icon={switchNotification.icon}
-                        title={switchNotification.title}
-                        description={switchNotification.description}
-                        isVisible={switchNotification.show}
-                        modelColor={switchNotification.notificationType === 'model' ?
-                            models.find(m => m.value === selectedModel)?.color :
-                            selectedGroup}
-                        notificationType={switchNotification.notificationType}
-                    />
+                    {switchNotification && (
+                        <SwitchNotification
+                            icon={switchNotification.icon}
+                            title={switchNotification.title}
+                            description={switchNotification.description}
+                            isVisible={true}
+                            modelColor={switchNotification.color}
+                            notificationType={switchNotification.type || 'model'}
+                        />
+                    )}
 
                     <div className="relative rounded-lg bg-neutral-100 dark:bg-neutral-900">
                         <Textarea
