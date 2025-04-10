@@ -4,10 +4,13 @@ import { z } from 'zod'
 
 export const clientEnv = createEnv({
   client: {
+    // Required for maps functionality
     NEXT_PUBLIC_MAPBOX_TOKEN: z.string().min(1),
-    NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
-    NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1).url(),
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1),
+    
+    // Optional analytics
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
   },
   runtimeEnv: {
     NEXT_PUBLIC_MAPBOX_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
