@@ -7,32 +7,25 @@ import { useEffect, Suspense, useState } from "react";
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react';
 
-// Only initialize PostHog if the keys are available
-if (typeof window !== 'undefined' && clientEnv.NEXT_PUBLIC_POSTHOG_KEY && clientEnv.NEXT_PUBLIC_POSTHOG_HOST) {
-  posthog.init(clientEnv.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: clientEnv.NEXT_PUBLIC_POSTHOG_HOST,
-    person_profiles: 'always',
-    capture_pageview: false,
-    capture_pageleave: true,
-    autocapture: true,
-    session_recording: {
-      maskAllInputs: false,
-      maskInputOptions: {
-        password: true,
-        email: true,
-        tel: true
-      }
-    }
-  })
-}
-
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY as string, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-      person_profiles: 'identified_only',
-      capture_pageview: false
-    })
+    if (typeof window !== 'undefined' && clientEnv.NEXT_PUBLIC_POSTHOG_KEY && clientEnv.NEXT_PUBLIC_POSTHOG_HOST) {
+      posthog.init(clientEnv.NEXT_PUBLIC_POSTHOG_KEY, {
+        api_host: clientEnv.NEXT_PUBLIC_POSTHOG_HOST,
+        person_profiles: 'identified_only',
+        capture_pageview: false,
+        capture_pageleave: true,
+        autocapture: true,
+        session_recording: {
+          maskAllInputs: false,
+          maskInputOptions: {
+            password: true,
+            email: true,
+            tel: true
+          }
+        }
+      })
+    }
   }, [])
 
   return (

@@ -8,6 +8,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Providers } from './providers';
+import { PostHogProvider } from "../components/PostHogProvider";
 
 export const metadata: Metadata = {
   title: "Prism AI",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     description: "Prism AI is a minimalistic AI-powered search engine that helps you find information on the internet.",
     siteName: "Prism AI",
     locale: "en_US",
-    type: "website",
+    type: "website"
   },
   keywords: [
     "prism ai",
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
     "mplx.run",
     "mplx ai",
     "zaid mukaddam",
-    "scira.how",
+    "scira.how"
   ]
 };
 
@@ -61,30 +62,30 @@ export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#0A0A0A' }
-  ],
-}
+  ]
+};
 
 const syne = Syne({ 
   subsets: ['latin'], 
   variable: '--font-syne',
-   preload: true,
+  preload: true,
   display: 'swap',
 });
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${GeistSans.variable} ${syne.variable} font-sans antialiased`} suppressHydrationWarning>
-        <NuqsAdapter>
-          <Providers>
-            <Toaster position="top-center" />
-            {children}
-          </Providers>
-        </NuqsAdapter>
+        <PostHogProvider>
+          <NuqsAdapter>
+            <Providers>
+              <Toaster position="top-center" />
+              {children}
+            </Providers>
+          </NuqsAdapter>
+        </PostHogProvider>
         <Analytics />
       </body>
     </html>
