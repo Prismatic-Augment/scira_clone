@@ -2132,6 +2132,14 @@ export async function POST(req: Request) {
                             content?: string;
                             query?: string;
                         }) => {
+                            if (!serverEnv.MEM0_API_KEY) {
+                                return {
+                                    success: false,
+                                    action,
+                                    message: 'MEM0_API_KEY is not configured'
+                                };
+                            }
+
                             const client = new MemoryClient({ apiKey: serverEnv.MEM0_API_KEY });
 
                             console.log("action", action);
