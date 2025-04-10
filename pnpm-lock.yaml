@@ -218,6 +218,9 @@ importers:
       motion:
         specifier: ^12.5.0
         version: 12.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      nanoid:
+        specifier: ^5.0.7
+        version: 5.1.5
       next:
         specifier: ^15.3.0
         version: 15.3.0(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3587,6 +3590,11 @@ packages:
   nanoid@3.3.6:
     resolution: {integrity: sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@5.1.5:
+    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+    engines: {node: ^18 || >=20}
     hasBin: true
 
   napi-build-utils@2.0.0:
@@ -8674,6 +8682,8 @@ snapshots:
   nanoid@3.3.11: {}
 
   nanoid@3.3.6: {}
+
+  nanoid@5.1.5: {}
 
   napi-build-utils@2.0.0: {}
 
