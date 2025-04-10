@@ -125,6 +125,7 @@ import MemoryManager from '@/components/memory-manager';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { nanoid } from 'nanoid';
+import { Logo } from '@/components/logos/logo';
 
 export const maxDuration = 120;
 
@@ -1450,9 +1451,9 @@ const HomeContent = () => {
                     <div key={`${messageIndex}-${partIndex}-text`}>
                         <div className="flex items-center justify-between mt-5 mb-2">
                             <div className="flex items-center gap-2">
-                                <Image src="/scira.png" alt="Scira" className='size-6 invert-0 dark:invert' width={100} height={100} unoptimized quality={100} />
+                                <Logo size={32} className="shrink-0" />
                                 <h2 className="text-lg font-semibold font-syne text-neutral-800 dark:text-neutral-200">
-                                    Scira AI
+                                    Prism AI
                                 </h2>
                             </div>
                             {status === 'ready' && (

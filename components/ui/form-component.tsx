@@ -20,6 +20,7 @@ import { Upload } from 'lucide-react';
 import { Mountain } from "lucide-react"
 import { UIMessage } from '@ai-sdk/ui-utils';
 import { Image, Globe } from 'lucide-react';
+import { Logo } from '@/components/logos/logo';
 
 interface ModelSwitcherProps {
     selectedModel: string;
@@ -32,7 +33,7 @@ interface ModelSwitcherProps {
     onModelSelect?: (model: typeof models[0]) => void;
 }
 
-const XAIIcon = ({ className }: { className?: string }) => (
+const PrismIcon = ({ className }: { className?: string }) => (
     <svg
         width="440"
         height="483"
@@ -48,11 +49,10 @@ const XAIIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
-
 const models = [
-    { value: "scira-default", label: "GPT-4 Turbo", icon: "OpenAI", iconClass: "!text-neutral-300", description: "OpenAI's most powerful model", color: "black", vision: false, experimental: false, category: "Stable" },
-    { value: "scira-vision", label: "GPT-4 Vision", icon: "OpenAI", iconClass: "!text-neutral-300", description: "OpenAI's vision model", color: "indigo", vision: true, experimental: false, category: "Stable" },
-    { value: "scira-mistral", label: "Mistral Large", icon: "Mistral", iconClass: "!text-neutral-300", description: "Mistral's most powerful model", color: "violet", vision: false, experimental: false, category: "Stable" },
+    { value: "scira-default", label: "GPT-4 Turbo", icon: Logo, iconClass: "!text-neutral-300", description: "OpenAI's most powerful model", color: "black", vision: false, experimental: false, category: "Stable" },
+    { value: "scira-vision", label: "GPT-4 Vision", icon: Logo, iconClass: "!text-neutral-300", description: "OpenAI's vision model", color: "indigo", vision: true, experimental: false, category: "Stable" },
+    { value: "scira-mistral", label: "Mistral Large", icon: Logo, iconClass: "!text-neutral-300", description: "Mistral's most powerful model", color: "violet", vision: false, experimental: false, category: "Stable" },
 ];
 
 const getColorClasses = (color: string, isSelected: boolean = false) => {
