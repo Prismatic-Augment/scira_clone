@@ -124,6 +124,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import MemoryManager from '@/components/memory-manager';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { nanoid } from 'nanoid';
 
 export const maxDuration = 120;
 
@@ -694,8 +695,8 @@ const HomeContent = () => {
                     { role: "user", content: lastSubmittedQueryRef.current },
                     { role: "assistant", content: message.content },
                 ];
-                const { questions } = await suggestQuestions(newHistory);
-                setSuggestedQuestions(questions);
+                const questions = await suggestQuestions(newHistory);
+                setSuggestedQuestions(questions || []);
             }
         },
         onError: (error) => {
@@ -1017,9 +1018,7 @@ const HomeContent = () => {
             );
         };
 
-        const generateKey = () => {
-            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        }
+        const generateKey = () => nanoid();
 
         const renderer: Partial<ReactRenderer> = {
             text(text: string) {
@@ -1052,7 +1051,7 @@ const HomeContent = () => {
                         </p>
                     );
                 }
-                return <p className="my-5 leading-relaxed text-neutral-700 dark:text-neutral-300">{children}</p>;
+                return <p className="my-5 leading-relaxed text-neutral-700 dark:text-neutral-300" key={generateKey()}>{children}</p>;
             },
             code(children, language) {
                 return <CodeBlock language={language} key={generateKey()}>{String(children)}</CodeBlock>;

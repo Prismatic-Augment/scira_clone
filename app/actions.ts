@@ -3,39 +3,39 @@
 
 import { serverEnv } from '@/env/server';
 import { SearchGroupId } from '@/lib/utils';
-import { xai } from '@ai-sdk/xai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
+import { customProvider } from 'ai';
+import { openai } from '@ai-sdk/openai';
 
-export async function suggestQuestions(history: any[]) {
-  'use server';
+const scira = customProvider({
+    languageModels: {
+        'scira-default': openai('gpt-4-turbo-preview'),
+    }
+});
 
+export async function suggestQuestions(history: { role: string; content: string }[]) {
   console.log(history);
 
   const { object } = await generateObject({
-    model: xai("grok-3-fast-beta"),
+    model: scira.languageModel('scira-default'),
     temperature: 0,
     maxTokens: 300,
-    topP: 0.3,
-    topK: 7,
-    system:
-      `You are a search engine query/questions generator. You 'have' to create only '3' questions for the search engine based on the message history which has been provided to you.
-The questions should be open-ended and should encourage further discussion while maintaining the whole context. Limit it to 5-10 words per question.
-Always put the user input's context is some way so that the next search knows what to search for exactly.
-Try to stick to the context of the conversation and avoid asking questions that are too general or too specific.
-For weather based conversations sent to you, always generate questions that are about news, sports, or other topics that are not related to the weather.
-For programming based conversations, always generate questions that are about the algorithms, data structures, or other topics that are related to it or an improvement of the question.
-For location based conversations, always generate questions that are about the culture, history, or other topics that are related to the location.
-Do not use pronouns like he, she, him, his, her, etc. in the questions as they blur the context. Always use the proper nouns from the context.`,
-    messages: history,
     schema: z.object({
-      questions: z.array(z.string()).describe('The generated questions based on the message history.')
+      questions: z.array(z.string()).describe('Array of 3 follow-up questions based on the conversation history')
     }),
+    prompt: `Based on this conversation history, suggest 3 relevant follow-up questions:
+${JSON.stringify(history, null, 2)}
+
+The questions should be:
+1. Relevant to the current topic
+2. Natural follow-ups to the last message
+3. Diverse but related questions that explore different aspects of the topic
+
+Return exactly 3 questions.`
   });
 
-  return {
-    questions: object.questions
-  };
+  return object.questions;
 }
 
 const ELEVENLABS_API_KEY = serverEnv.ELEVENLABS_API_KEY;

@@ -65,13 +65,13 @@ const PREVIEW_IMAGE_COUNT = {
 
 // Loading state component
 const SearchLoadingState = ({ 
-    queries,
-    annotations 
+    queries = [],
+    annotations = []
 }: { 
-    queries: string[];
-    annotations: QueryCompletion[];
+    queries?: string[];
+    annotations?: QueryCompletion[];
 }) => {
-    const totalResults = annotations.reduce((sum, a) => sum + a.data.resultsCount, 0);
+    const totalResults = annotations?.reduce((sum, a) => sum + (a?.data?.resultsCount || 0), 0) || 0;
 
     return (
         <div className="w-full space-y-3">
@@ -103,8 +103,8 @@ const SearchLoadingState = ({
                         <div className="py-3 px-4 bg-white dark:bg-neutral-900 rounded-b-lg border border-t-0 border-neutral-200 dark:border-neutral-800">
                             {/* Query badges */}
                             <div className="flex overflow-x-auto gap-1.5 mb-3 no-scrollbar pb-1">
-                                {queries.map((query, i) => {
-                                    const annotation = annotations.find(a => a.data.query === query);
+                                {queries?.map((query, i) => {
+                                    const annotation = annotations?.find(a => a?.data?.query === query);
                                     return (
                                         <Badge
                                             key={i}
@@ -482,7 +482,7 @@ const MultiSearch: React.FC<{
     annotations = []
 }) => {
     if (!result) {
-        return <SearchLoadingState queries={args.queries} annotations={annotations} />;
+        return <SearchLoadingState queries={args?.queries || []} annotations={annotations} />;
     }
 
     // Collect all images from all searches

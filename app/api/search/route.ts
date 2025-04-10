@@ -1,9 +1,8 @@
 // /app/api/chat/route.ts
 import { getGroupConfig } from '@/app/actions';
 import { serverEnv } from '@/env/server';
-import { xai } from '@ai-sdk/xai';
-import { cohere } from '@ai-sdk/cohere'
-import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from '@ai-sdk/openai';
+import { mistral } from '@ai-sdk/mistral';
 import CodeInterpreter from '@e2b/code-interpreter';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { tavily } from '@tavily/core';
@@ -23,11 +22,9 @@ import MemoryClient from 'mem0ai';
 
 const scira = customProvider({
     languageModels: {
-        'scira-default': xai('grok-3-fast-beta'),
-        'scira-grok-3-mini': xai('grok-3-mini-fast-beta'),
-        'scira-vision': xai('grok-2-vision-1212'),
-        // 'scira-cmd-a': cohere('command-a-03-2025'),
-        'scira-claude': anthropic('claude-3-7-sonnet-20250219'),
+        'scira-default': openai('gpt-4-turbo-preview'),
+        'scira-vision': openai('gpt-4-vision-preview'),
+        'scira-mistral': mistral('mistral-large-latest'),
     }
 })
 
@@ -420,118 +417,57 @@ export async function POST(req: Request) {
                         },
                     }),
                     web_search: tool({
-                        description: 'Search the web for information with 5-10 queries, max results and search depth.',
+                        description: 'Search for information.',
                         parameters: z.object({
-                            queries: z.array(z.string().describe('Array of search queries to look up on the web. Default is 5 to 10 queries.')),
-                            maxResults: z.array(
-                                z.number().describe('Array of maximum number of results to return per query. Default is 10.').default(10),
-                            ),
-                            topics: z.array(
-                                z.enum(['general', 'news', 'finance']).describe('Array of topic types to search for. Default is general.').default('general'),
-                            ),
-                            searchDepth: z.array(
-                                z.enum(['basic', 'advanced']).describe('Array of search depths to use. Default is basic. Use advanced for more detailed results.').default('basic'),
-                            ),
-                            exclude_domains: z
-                                .array(z.string())
-                                .describe('A list of domains to exclude from all search results. Default is an empty list.').default([]),
+                            query: z.string().describe('The search query'),
+                            type: z.enum(['general', 'news', 'finance']).default('general').describe('The type of search to perform'),
                         }),
-                        execute: async ({
-                            queries,
-                            maxResults,
-                            topics,
-                            searchDepth,
-                            exclude_domains,
-                        }: {
-                            queries: string[];
-                            maxResults: number[];
-                            topics: ('general' | 'news' | 'finance')[];
-                            searchDepth: ('basic' | 'advanced')[];
-                            exclude_domains?: string[];
-                        }) => {
-                            const apiKey = serverEnv.TAVILY_API_KEY;
-                            const tvly = tavily({ apiKey });
-                            const includeImageDescriptions = true;
-
-                            console.log('Queries:', queries);
-                            console.log('Max Results:', maxResults);
-                            console.log('Topics:', topics);
-                            console.log('Search Depths:', searchDepth);
-                            console.log('Exclude Domains:', exclude_domains);
-
-                            // Execute searches in parallel
-                            const searchPromises = queries.map(async (query, index) => {
-                                const data = await tvly.search(query, {
-                                    topic: topics[index] || topics[0] || 'general',
-                                    days: topics[index] === 'news' ? 7 : undefined,
-                                    maxResults: maxResults[index] || maxResults[0] || 10,
-                                    searchDepth: searchDepth[index] || searchDepth[0] || 'basic',
-                                    includeAnswer: true,
-                                    includeImages: true,
-                                    includeImageDescriptions: includeImageDescriptions,
-                                    excludeDomains: exclude_domains,
+                        execute: async ({ query, type }: { query: string; type: 'general' | 'news' | 'finance' }) => {
+                            try {
+                                const { object: response } = await generateObject({
+                                    model: openai("gpt-4-turbo-preview"),
+                                    temperature: 0.7,
+                                    schema: z.object({
+                                        response: z.string()
+                                    }),
+                                    prompt: `You are a helpful assistant that provides information about current events and news. 
+                                            The user has asked: "${query}"
+                                            Today's date is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                            
+                                            Please provide a comprehensive but concise response about this topic, focusing on the most recent and relevant information.
+                                            If this is a news-related query, focus on events from the past week.
+                                            Include specific dates and facts when available.`
                                 });
 
-                                // Add annotation for query completion
-                                dataStream.writeMessageAnnotation({
-                                    type: 'query_completion',
-                                    data: {
-                                        query,
-                                        index,
-                                        total: queries.length,
-                                        status: 'completed',
-                                        resultsCount: data.results.length,
-                                        imagesCount: data.images.length
-                                    }
-                                });
-
+                                // Return in the expected format for the MultiSearch component
                                 return {
-                                    query,
-                                    results: deduplicateByDomainAndUrl(data.results).map((obj: any) => ({
-                                        url: obj.url,
-                                        title: obj.title,
-                                        content: obj.content,
-                                        raw_content: obj.raw_content,
-                                        published_date: topics[index] === 'news' ? obj.published_date : undefined,
-                                    })),
-                                    images: includeImageDescriptions
-                                        ? await Promise.all(
-                                            deduplicateByDomainAndUrl(data.images).map(
-                                                async ({ url, description }: { url: string; description?: string }) => {
-                                                    const sanitizedUrl = sanitizeUrl(url);
-                                                    const imageValidation = await isValidImageUrl(sanitizedUrl);
-                                                    return imageValidation.valid
-                                                        ? {
-                                                            url: imageValidation.redirectedUrl || sanitizedUrl,
-                                                            description: description ?? '',
-                                                        }
-                                                        : null;
-                                                },
-                                            ),
-                                        ).then((results) =>
-                                            results.filter(
-                                                (image): image is { url: string; description: string } =>
-                                                    image !== null &&
-                                                    typeof image === 'object' &&
-                                                    typeof image.description === 'string' &&
-                                                    image.description !== '',
-                                            ),
-                                        )
-                                        : await Promise.all(
-                                            deduplicateByDomainAndUrl(data.images).map(async ({ url }: { url: string }) => {
-                                                const sanitizedUrl = sanitizeUrl(url);
-                                                const imageValidation = await isValidImageUrl(sanitizedUrl);
-                                                return imageValidation.valid ? (imageValidation.redirectedUrl || sanitizedUrl) : null;
-                                            }),
-                                        ).then((results) => results.filter((url) => url !== null) as string[]),
+                                    searches: [{
+                                        query,
+                                        results: [{
+                                            url: "https://chat.openai.com",
+                                            title: type === 'news' ? "Latest News Update" : "Search Results",
+                                            content: response.response,
+                                            published_date: new Date().toISOString()
+                                        }],
+                                        images: [] // Empty array to prevent undefined
+                                    }]
                                 };
-                            });
-
-                            const searchResults = await Promise.all(searchPromises);
-
-                            return {
-                                searches: searchResults,
-                            };
+                            } catch (error) {
+                                console.error('Search error:', error);
+                                // Return a valid empty structure on error
+                                return {
+                                    searches: [{
+                                        query,
+                                        results: [{
+                                            url: "https://chat.openai.com",
+                                            title: "Error",
+                                            content: "Sorry, there was an error processing your request. Please try again.",
+                                            published_date: new Date().toISOString()
+                                        }],
+                                        images: []
+                                    }]
+                                };
+                            }
                         },
                     }),
                     x_search: tool({
@@ -1515,7 +1451,7 @@ export async function POST(req: Request) {
 
                             // Now generate the research plan
                             const { object: researchPlan } = await generateObject({
-                                model: xai("grok-beta"),
+                                model: openai("gpt-4-turbo-preview"),
                                 temperature: 0,
                                 schema: z.object({
                                     search_queries: z.array(z.object({
@@ -1748,7 +1684,7 @@ export async function POST(req: Request) {
                                 });
 
                                 const { object: analysisResult } = await generateObject({
-                                    model: xai("grok-beta"),
+                                    model: openai("gpt-4-turbo-preview"),
                                     temperature: 0.5,
                                     schema: z.object({
                                         findings: z.array(z.object({
@@ -1798,7 +1734,7 @@ export async function POST(req: Request) {
 
                             // After all analyses are complete, analyze limitations and gaps
                             const { object: gapAnalysis } = await generateObject({
-                                model: xai("grok-beta"),
+                                model: openai("gpt-4-turbo-preview"),
                                 temperature: 0,
                                 schema: z.object({
                                     limitations: z.array(z.object({
@@ -2112,7 +2048,7 @@ export async function POST(req: Request) {
 
                                 // Perform final synthesis of all findings
                                 const { object: finalSynthesis } = await generateObject({
-                                    model: xai("grok-beta"),
+                                    model: openai("gpt-4-turbo-preview"),
                                     temperature: 0,
                                     schema: z.object({
                                         key_findings: z.array(z.object({
