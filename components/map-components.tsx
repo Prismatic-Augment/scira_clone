@@ -5,7 +5,12 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, { useEffect, useRef } from 'react';
 
-mapboxgl.accessToken = clientEnv.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+// Check if map functionality is available
+const isMapEnabled = !!(clientEnv.NEXT_PUBLIC_MAPBOX_TOKEN && clientEnv.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+
+if (isMapEnabled) {
+  mapboxgl.accessToken = clientEnv.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+}
 
 interface Location {
   lat: number;
@@ -26,6 +31,14 @@ interface MapProps {
 }
 
 const MapComponent = ({ center, places = [], zoom = 14, onMarkerClick }: MapProps & { onMarkerClick?: (place: Place) => void }) => {
+  if (!isMapEnabled) {
+    return (
+      <div className="w-full h-[60vh] rounded-t-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+        <p className="text-neutral-500">Map functionality is disabled. Please configure map API keys to enable this feature.</p>
+      </div>
+    );
+  }
+
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
