@@ -50,11 +50,9 @@ const XAIIcon = ({ className }: { className?: string }) => (
 
 
 const models = [
-    { value: "scira-default", label: "Grok 3.0", icon: XAIIcon, iconClass: "!text-neutral-300", description: "xAI's most intelligent model", color: "black", vision: false, experimental: false, category: "Stable" },
-    { value: "scira-grok-3-mini", label: "Grok 3.0 Mini", icon: XAIIcon, iconClass: "!text-neutral-300", description: "xAI's most efficient model", color: "gray", vision: false, experimental: false, category: "Stable" },
-    { value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "!text-neutral-300", description: "xAI's most advanced vision model", color: "indigo", vision: true, experimental: false, category: "Stable" },
-    // { value: "scira-cmd-a", label: "Command A", icon: "/cohere.svg", iconClass: "!text-neutral-900 dark:!text-white", description: "Cohere's most powerful model", color: "purple", vision: false, experimental: true, category: "Experimental" },
-    { value: "scira-claude", label: "Claude 3.7 Sonnet", icon: "/anthropic.svg", iconClass: "!text-neutral-300", description: "Anthropic's most advanced model", color: "violet", vision: true, experimental: false, category: "Stable" },
+    { value: "scira-default", label: "GPT-4 Turbo", icon: "OpenAI", iconClass: "!text-neutral-300", description: "OpenAI's most powerful model", color: "black", vision: false, experimental: false, category: "Stable" },
+    { value: "scira-vision", label: "GPT-4 Vision", icon: "OpenAI", iconClass: "!text-neutral-300", description: "OpenAI's vision model", color: "indigo", vision: true, experimental: false, category: "Stable" },
+    { value: "scira-mistral", label: "Mistral Large", icon: "Mistral", iconClass: "!text-neutral-300", description: "Mistral's most powerful model", color: "violet", vision: false, experimental: false, category: "Stable" },
 ];
 
 const getColorClasses = (color: string, isSelected: boolean = false) => {

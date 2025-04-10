@@ -11,6 +11,7 @@ import { openai } from '@ai-sdk/openai';
 const scira = customProvider({
     languageModels: {
         'scira-default': openai('gpt-4-turbo-preview'),
+        'scira-vision': openai('gpt-4-vision-preview'),
     }
 });
 
