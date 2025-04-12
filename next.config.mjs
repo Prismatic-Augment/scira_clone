@@ -1,15 +1,15 @@
 // https://env.t3.gg/docs/nextjs#validate-schema-on-build-(recommended)
-import { createJiti } from 'jiti'
-import { fileURLToPath } from 'node:url'
-const jiti = createJiti(fileURLToPath(import.meta.url))
+import { createJiti } from 'jiti';
+import { fileURLToPath } from 'node:url';
+const jiti = createJiti(fileURLToPath(import.meta.url));
 
 // Import env here to validate during build. Using jiti we can import .ts files :)
-jiti.import('./env/server')
-jiti.import('./env/client')
+jiti.import('./env/server');
+jiti.import('./env/client');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    transpilePackages: ["geist"],
+    transpilePackages: ['geist'],
     output: 'standalone',
     async headers() {
         return [
@@ -30,7 +30,16 @@ const nextConfig = {
                     },
                 ],
             },
-        ]
+            {
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "connect-src 'self' https://app.prismreplay.com",
+                    },
+                ],
+            },
+        ];
     },
     async redirects() {
         return [
@@ -43,22 +52,22 @@ const nextConfig = {
                 source: '/raycast',
                 destination: 'https://www.raycast.com/zaidmukaddam/scira',
                 permanent: true,
-            }
-        ]
+            },
+        ];
     },
     async rewrites() {
         return [
             {
-                source: "/ingest/static/:path*",
-                destination: "https://us-assets.i.posthog.com/static/:path*",
+                source: '/ingest/static/:path*',
+                destination: 'https://us-assets.i.posthog.com/static/:path*',
             },
             {
-                source: "/ingest/:path*",
-                destination: "https://us.i.posthog.com/:path*",
+                source: '/ingest/:path*',
+                destination: 'https://us.i.posthog.com/:path*',
             },
             {
-                source: "/ingest/decide",
-                destination: "https://us.i.posthog.com/decide",
+                source: '/ingest/decide',
+                destination: 'https://us.i.posthog.com/decide',
             },
         ];
     },
@@ -83,44 +92,44 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'metwm7frkvew6tn1.public.blob.vercel-storage.com',
                 port: '',
-                pathname: "**"
+                pathname: '**',
             },
             // upload.wikimedia.org
             {
                 protocol: 'https',
                 hostname: 'upload.wikimedia.org',
                 port: '',
-                pathname: '**'
+                pathname: '**',
             },
             // media.theresanaiforthat.com
             {
                 protocol: 'https',
                 hostname: 'media.theresanaiforthat.com',
                 port: '',
-                pathname: '**'
+                pathname: '**',
             },
             // www.uneed.best
             {
                 protocol: 'https',
                 hostname: 'www.uneed.best',
                 port: '',
-                pathname: '**'
+                pathname: '**',
             },
             // image.tmdb.org
             {
                 protocol: 'https',
                 hostname: 'image.tmdb.org',
                 port: '',
-                pathname: '/t/p/original/**'
+                pathname: '/t/p/original/**',
             },
             // image.tmdb.org
             {
                 protocol: 'https',
                 hostname: 'image.tmdb.org',
                 port: '',
-                pathname: '/**'
+                pathname: '/**',
             },
-        ]
+        ],
     },
 };
 
