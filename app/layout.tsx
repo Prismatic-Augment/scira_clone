@@ -80,8 +80,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <body className={`${GeistSans.variable} ${syne.variable} font-sans antialiased`} suppressHydrationWarning>
                 <PrismProvider
                     config={{
-                        apiKey: '7e7c6776-b86e-413a-822e-2d112a3ae8fb',
-                        projectId: 'cm9byadia0002lb042ou5xqhi',
+                        apiKey: 'bbc29873-058e-4ec3-86ad-364282fadcb9',
+                        projectId: 'cma475inf0001ojjnss77ogwp',
                     }}
                 >
                     <PostHogProvider>
